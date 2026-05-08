@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoru 夜次元 - 小清新交互原型 (含二级页面)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        yoru: {
+                            bg: '#F4F7F9', 
+                            card: '#FFFFFF',
+                            primary: '#7AB2D3', 
+                            secondary: '#FFB6B9', 
+                            accent: '#B5EAD7', 
+                            text: '#2D3436', 
+                            subtext: '#8395A7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Nunito"', '-apple-system', '"PingFang SC"', 'sans-serif'],
+                        display: ['"Quicksand"', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(122, 178, 211, 0.15)',
+                        'glow-primary': '0 0 25px rgba(122, 178, 211, 0.4)',
+                        'glow-secondary': '0 0 25px rgba(255, 182, 185, 0.4)',
+                        'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.04)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        body {
+            background-color: #E2E8F0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #2D3436;
+        }
+
+        .device-mockup {
+            width: 393px;
+            height: 852px;
+            background-color: #F4F7F9;
+            border-radius: 55px;
+            position: relative;
+            box-shadow: 0 0 0 12px #F8FAFC, 0 0 0 13px #CBD5E1, 0 30px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 32px;
+            background-color: #000;
+            border-radius: 20px;
+            z-index: 100;
+        }
+
+        .bg-glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(122,178,211,0.25) 0%, rgba(244,247,249,0) 70%);
+            top: -150px;
+            left: -100px;
+            border-radius: 50%;
+            pointer-events: none;
+            transition: all 0.8s ease-in-out;
+        }
+        .bg-glow-bottom {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(181,234,215,0.2) 0%, rgba(244,247,249,0) 70%);
+            bottom: -100px;
+            right: -50px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes radar-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .radar-sweep {
+            background: conic-gradient(from 0deg, transparent 70%, rgba(122,178,211,0.3) 100%);
+            border-radius: 50%;
+            animation: radar-spin 4s linear infinite;
+        }
+
+        @keyframes pulse-glow-soft {
+            0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 15px rgba(122,178,211,0.2); }
+            50% { opacity: 0.8; transform: scale(0.96); box-shadow: 0 0 25px rgba(122,178,211,0.5); }
+        }
+        .animate-pulse-glow-soft {
+            animation: pulse-glow-soft 2.5s ease-in-out infinite;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .nsfw-blur {
+            filter: blur(20px) brightness(1.1) saturate(0.8);
+            transition: all 0.5s ease;
+        }
+        .nsfw-unblur {
+            filter: blur(0px) brightness(1) saturate(1);
+        }
+
+        .fade-enter { opacity: 0; transform: translateY(10px); }
+        .fade-enter-active { opacity: 1; transform: translateY(0); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* 点赞动画 */
+        @keyframes heart-burst {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .liked-anim { animation: heart-burst 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #FFB6B9; }
+    </style>
+</head>
+<body>
+
+    <div class="fixed top-5 left-5 text-gray-500 text-sm hidden md:block">
+        <h1 class="text-yoru-primary font-display font-bold text-xl mb-2">YORU [SOFT EDITION]</h1>
+        <p>📱 iPhone 15 Pro (393x852)</p>
+        <p>✨ 更新记录：</p>
+        <ul class="list-disc pl-4 mt-2 space-y-1">
+            <li>修复图片加载 404 问题</li>
+            <li>更换高清防丢占位图库</li>
+            <li>引入动漫风格专属矢量头像</li>
+            <li>优化了内容加载容错性</li>
+        </ul>
+    </div>
+
+    <!-- 手机外壳 -->
+    <div class="device-mockup">
+        <div class="dynamic-island"></div>
+        <div id="ambient-glow" class="bg-glow"></div>
+        <div class="bg-glow-bottom"></div>
+
+        <!-- ==============================
+             视图 1：结界门禁 (启动/验证页)
+        =============================== -->
+        <div id="view-auth" class="absolute inset-0 bg-yoru-bg z-[100] flex flex-col justify-center items-center px-8 transition-opacity duration-700 backdrop-blur-3xl">
+            <div class="text-center mb-12">
+                <h1 class="text-5xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-yoru-primary to-yoru-accent tracking-tight mb-2">yoru.</h1>
+                <p class="text-yoru-subtext text-xs tracking-widest uppercase font-semibold">Secret Garden</p>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-6 w-full max-w-sm mb-16 shadow-soft">
+                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-yoru-secondary/20 text-yoru-secondary mb-4 mx-auto">
+                    <i class="fa-solid fa-seedling text-xl"></i>
+                </div>
+                <h2 class="text-center text-lg font-bold text-yoru-text mb-2 font-display">静谧之境</h2>
+                <p class="text-center text-sm text-yoru-subtext leading-relaxed">前方是专属于成年人的精神角落。<br>请确认您已满 18 周岁，即可轻触解锁。</p>
+            </div>
+
+            <button onclick="unlockApp()" class="group relative w-20 h-20 rounded-full flex justify-center items-center animate-pulse-glow-soft">
+                <div class="absolute inset-0 rounded-full bg-white shadow-soft transition-all duration-300 group-hover:scale-105"></div>
+                <div class="relative w-16 h-16 rounded-full bg-gradient-to-tr from-yoru-bg to-white border border-white flex justify-center items-center text-yoru-primary">
+                    <i class="fa-solid fa-fingerprint text-3xl opacity-80"></i>
+                </div>
+            </button>
+            <p class="mt-5 text-xs text-yoru-subtext/60 font-display tracking-widest font-bold">TOUCH TO OPEN</p>
+        </div>
+
+        <!-- ==============================
+             视图 2：App 主界面
+        =============================== -->
+        <div id="view-main" class="absolute inset-0 bg-transparent flex flex-col opacity-0 pointer-events-none transition-opacity duration-500">
+            
+            <!-- 头部 -->
+            <div class="pt-14 pb-2 px-5 flex justify-between items-center z-20 glass-panel border-b-0 rounded-b-3xl">
+                <div class="font-display text-2xl font-bold tracking-tight">
+                    <span id="header-logo" class="text-yoru-primary transition-colors duration-300">yoru.</span>
+                </div>
+                
+                <div class="flex items-center space-x-4 text-yoru-subtext">
+                    <button class="hover:text-yoru-primary transition"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <button class="hover:text-yoru-primary transition relative">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-yoru-secondary rounded-full border border-white"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 内容区容器 -->
+            <div class="flex-1 overflow-y-auto no-scrollbar relative pb-28 pt-4" id="main-scroll-area">
+                
+                <!-- Tab 1: 信息流 -->
+                <div id="tab-feed" class="px-4 space-y-4 fade-enter fade-enter-active">
+                    <!-- 数据将由 JS 动态生成填充 -->
+                </div>
+
+                <!-- Tab 2: 兴趣结界 -->
+                <div id="tab-dungeon" class="hidden px-4 space-y-4 fade-enter">
+                    <div class="sticky top-0 pt-2 pb-4 z-10 bg-[#F4F7F9]/90 backdrop-blur-md">
+                        <h2 class="font-display text-xl font-bold text-yoru-text">兴趣结界</h2>
+                        <p class="text-xs text-yoru-subtext mt-0.5">找到你的专属同好圈</p>
+                        <div class="mt-4 relative shadow-soft rounded-full">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                            <input type="text" placeholder="搜索圈子、话题..." class="w-full bg-white border border-white rounded-full pl-10 pr-4 py-2.5 text-[13px] outline-none focus:ring-2 focus:ring-yoru-primary/20 transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div onclick="openPage('page-circle-detail')" class="bg-white rounded-[24px] p-4 shadow-soft border border-white flex flex-col items-center text-center cursor-pointer transition hover:scale-[1.02]">
+                            <div class="w-12 h-12 rounded-full bg-blue-50 text-yoru-primary flex items-center justify-center text-xl mb-3 shadow-inner-soft">
+                                <i class="fa-solid fa-gamepad"></i>
+                            </div>
+                            <h3 class="text-[13px] font-bold text-yoru-text">主机游民</h3>
+                            <p class="text-[10px] text-yoru-subtext mt-1">12.4k 成员</p>
+                            <button onclick="event.stopPropagation(); joinCircle(this, false)" class="mt-3 bg-yoru-primary/10 text-yoru-primary text-[11px] font-bold py-1.5 px-5 rounded-full hover:bg-yoru-primary hover:text-white transition w-full">加入</button>
+                        </div>
+                        <div onclick="openPage('page-circle-detail')" class="bg-white rounded-[24px] p-4 shadow-soft border border-white flex flex-col items-center text-center cursor-pointer transition hover:scale-[1.02]">
+                            <div class="w-12 h-12 rounded-full bg-pink-50 text-yoru-secondary flex items-center justify-center text-xl mb-3 shadow-inner-soft">
+                                <i class="fa-solid fa-film"></i>
+                            </div>
+                            <h3 class="text-[13px] font-bold text-yoru-text">深夜放映室</h3>
+                            <p class="text-[10px] text-yoru-subtext mt-1">8.1k 成员</p>
+                            <button onclick="event.stopPropagation(); joinCircle(this, false)" class="mt-3 bg-yoru-secondary/10 text-yoru-secondary text-[11px] font-bold py-1.5 px-5 rounded-full hover:bg-yoru-secondary hover:text-white transition w-full">加入</button>
+                        </div>
+                        <div onclick="openPage('page-circle-detail')" class="bg-white rounded-[24px] p-4 shadow-soft border border-white flex flex-col items-center text-center cursor-pointer transition hover:scale-[1.02]">
+                            <div class="w-12 h-12 rounded-full bg-green-50 text-yoru-accent flex items-center justify-center text-xl mb-3 shadow-inner-soft">
+                                <i class="fa-solid fa-camera"></i>
+                            </div>
+                            <h3 class="text-[13px] font-bold text-yoru-text">胶片与光影</h3>
+                            <p class="text-[10px] text-yoru-subtext mt-1">4.5k 成员</p>
+                            <button onclick="event.stopPropagation()" class="mt-3 bg-gray-50 text-gray-500 text-[11px] font-bold py-1.5 px-5 rounded-full w-full">已加入</button>
+                        </div>
+                        <div onclick="openPage('page-circle-detail')" class="bg-white rounded-[24px] p-4 shadow-soft border border-white flex flex-col items-center text-center cursor-pointer transition hover:scale-[1.02]">
+                            <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-400 flex items-center justify-center text-xl mb-3 shadow-inner-soft">
+                                <i class="fa-solid fa-shirt"></i>
+                            </div>
+                            <h3 class="text-[13px] font-bold text-yoru-text">OOTD研究所</h3>
+                            <p class="text-[10px] text-yoru-subtext mt-1">6.2k 成员</p>
+                            <button onclick="event.stopPropagation(); joinCircle(this, false)" class="mt-3 bg-purple-400/10 text-purple-500 text-[11px] font-bold py-1.5 px-5 rounded-full hover:bg-purple-400 hover:text-white transition w-full">加入</button>
+                        </div>
+                    </div>
+                    <div class="h-12"></div>
+                </div>
+
+                <!-- Tab 4: 电波信箱 -->
+                <div id="tab-radio" class="hidden h-full flex flex-col items-center justify-center p-4 relative fade-enter">
+                    <div class="absolute top-0 left-4">
+                        <h2 class="font-display text-xl font-bold text-yoru-text">电波信箱</h2>
+                        <p class="text-xs text-yoru-subtext mt-0.5">寻找同频灵魂</p>
+                    </div>
+                    
+                    <div class="relative w-64 h-64 flex items-center justify-center mt-12">
+                        <div class="absolute inset-0 rounded-full border border-white shadow-[inset_0_0_20px_rgba(255,255,255,0.5)]"></div>
+                        <div class="absolute inset-6 rounded-full border border-white/60"></div>
+                        <div class="absolute inset-16 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm"></div>
+                        <div class="absolute inset-0 radar-sweep"></div>
+                        
+                        <!-- 点击发送电波 -->
+                        <button onclick="openPage('page-send-radio')" class="relative z-10 w-20 h-20 bg-white rounded-full shadow-soft flex flex-col items-center justify-center text-yoru-primary hover:scale-105 transition-all duration-300">
+                            <i class="fa-solid fa-satellite-dish text-xl mb-1"></i>
+                            <span class="text-[10px] font-bold font-display">发射</span>
+                        </button>
+                        
+                        <div class="absolute top-10 left-12 w-10 h-10 bg-white rounded-full shadow-soft flex items-center justify-center animate-bounce" style="animation-delay: 0.5s;">
+                            <i class="fa-solid fa-envelope-open-text text-yoru-secondary text-sm"></i>
+                        </div>
+                        <div class="absolute bottom-16 right-8 w-8 h-8 bg-white rounded-full shadow-soft flex items-center justify-center animate-bounce" style="animation-delay: 1.2s;">
+                            <i class="fa-solid fa-music text-yoru-accent text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div class="mt-16 w-full space-y-3 relative z-10">
+                        <p class="text-[10px] text-yoru-subtext mb-2 font-display uppercase tracking-widest font-bold">已捕获的温柔电波</p>
+                        
+                        <div class="bg-white/80 p-4 rounded-2xl border border-white shadow-sm relative overflow-hidden backdrop-blur-md cursor-pointer hover:bg-white transition" onclick="openPage('page-post-detail')">
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-yoru-secondary to-transparent"></div>
+                            <p class="text-[13px] text-yoru-text leading-relaxed">"有人懂下班后泡一杯花茶，戴上耳机重温《夏目友人帐》那种被治愈的孤独感吗？..."</p>
+                            <div class="flex justify-between items-center mt-3">
+                                <span class="text-[11px] text-yoru-subtext font-display">来自: Anonymous_茶</span>
+                                <button onclick="event.stopPropagation(); openPage('page-send-radio')" class="text-xs bg-yoru-secondary/10 text-yoru-secondary px-3 py-1.5 rounded-full font-semibold hover:bg-yoru-secondary hover:text-white transition">回信</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 5: 个人主页 -->
+                <div id="tab-profile" class="hidden px-4 space-y-4 fade-enter">
+                    <div class="bg-white rounded-[32px] p-6 shadow-soft border border-white mt-4 text-center relative overflow-hidden">
+                        <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-r from-yoru-primary/20 to-yoru-secondary/20"></div>
+                        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=YoruExplorer" class="w-20 h-20 bg-white rounded-full border-4 border-white shadow-md mx-auto relative z-10 mt-6 object-cover" alt="My Avatar">
+                        <h2 class="text-lg font-bold text-yoru-text mt-3 font-display">Yoru_Explorer</h2>
+                        <p class="text-[11px] text-yoru-subtext mt-1">ID: 89757 · 坐标: 银河系</p>
+                        <div class="flex justify-center space-x-8 mt-5 pt-5 border-t border-gray-50">
+                            <div class="text-center"><span class="block font-bold text-yoru-text text-lg">128</span><span class="text-[10px] text-yoru-subtext">关注</span></div>
+                            <div class="text-center"><span class="block font-bold text-yoru-text text-lg">3.4k</span><span class="text-[10px] text-yoru-subtext">粉丝</span></div>
+                            <div class="text-center"><span class="block font-bold text-yoru-text text-lg">42</span><span class="text-[10px] text-yoru-subtext">电波</span></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 互动功能区 -->
+                    <div class="bg-white rounded-[24px] p-2 shadow-soft border border-white mt-4">
+                        <button class="w-full flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                            <div class="w-8 h-8 rounded-full bg-blue-50 text-yoru-primary flex items-center justify-center mr-3"><i class="fa-solid fa-bookmark"></i></div>
+                            <span class="text-[13px] font-bold text-yoru-text flex-1 text-left">我的收藏</span>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                        </button>
+                        <button class="w-full flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                            <div class="w-8 h-8 rounded-full bg-pink-50 text-yoru-secondary flex items-center justify-center mr-3"><i class="fa-solid fa-file-lines"></i></div>
+                            <span class="text-[13px] font-bold text-yoru-text flex-1 text-left">我的电波与动态</span>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 系统设置区 -->
+                    <div class="bg-white rounded-[24px] p-2 shadow-soft border border-white mt-4">
+                        <div class="px-3 py-2 border-b border-gray-50 mb-1 flex items-center">
+                            <i class="fa-solid fa-gear text-yoru-subtext text-xs mr-2"></i>
+                            <span class="text-[11px] font-bold text-yoru-subtext tracking-wider">系统设置</span>
+                        </div>
+                        <button class="w-full flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                            <span class="text-[13px] font-bold text-yoru-text flex-1 text-left pl-1">账号与安全</span>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                        </button>
+                        <button class="w-full flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                            <span class="text-[13px] font-bold text-yoru-text flex-1 text-left pl-1">隐私设置</span>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                        </button>
+                        <button class="w-full flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                            <span class="text-[13px] font-bold text-yoru-text flex-1 text-left pl-1">消息通知</span>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                        </button>
+                        <button class="w-full flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                            <span class="text-[13px] font-bold text-yoru-text flex-1 text-left pl-1">外观与主题</span>
+                            <span class="text-[11px] text-gray-400 mr-2">小清新模式</span>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- 杂项设置区 -->
+                    <div class="bg-white rounded-[24px] p-2 shadow-soft border border-white mt-4">
+                        <button onclick="showToast('缓存已清除')" class="w-full flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                            <span class="text-[13px] font-bold text-yoru-text flex-1 text-left pl-1">清除缓存</span>
+                            <span class="text-[11px] text-gray-400 mr-2">128 MB</span>
+                        </button>
+                        <button class="w-full flex items-center p-3 hover:bg-gray-50 rounded-xl transition">
+                            <span class="text-[13px] font-bold text-yoru-text flex-1 text-left pl-1">关于 Yoru</span>
+                            <span class="text-[11px] text-gray-400 mr-2">v1.0.0</span>
+                            <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                        </button>
+                    </div>
+
+                    <button onclick="showToast('已退出登录')" class="w-full bg-white text-red-500 font-bold py-3.5 rounded-[24px] shadow-soft border border-white mt-4 mb-8 hover:bg-red-50 transition">
+                        退出登录
+                    </button>
+                    
+                    <div class="h-16"></div>
+                </div>
+
+            </div>
+
+            <!-- 悬浮胶囊导航栏 -->
+            <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-[85%] h-16 glass-panel rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.08)] flex justify-around items-center px-3 z-50">
+                <button onclick="switchTab('feed', this)" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center text-yoru-primary relative transition">
+                    <div class="absolute inset-0 bg-yoru-primary/10 rounded-full active-bg scale-100 transition-transform"></div>
+                    <i class="fa-solid fa-layer-group text-lg relative z-10"></i>
+                </button>
+                <button onclick="switchTab('dungeon', this)" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center text-gray-300 hover:text-yoru-subtext transition relative">
+                    <i class="fa-solid fa-compass text-lg relative z-10"></i>
+                </button>
+                <button onclick="openPage('page-send-radio')" class="w-14 h-14 rounded-full bg-gradient-to-tr from-yoru-primary to-yoru-accent text-white flex items-center justify-center shadow-soft transform -translate-y-4 border-4 border-[#F4F7F9] hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-plus text-xl"></i>
+                </button>
+                <button onclick="switchTab('radio', this)" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center text-gray-300 hover:text-yoru-subtext transition relative">
+                    <i class="fa-solid fa-paper-plane text-lg relative z-10"></i>
+                </button>
+                <button onclick="switchTab('profile', this)" class="nav-btn w-12 h-12 rounded-full flex items-center justify-center text-gray-300 hover:text-yoru-subtext transition relative">
+                    <i class="fa-regular fa-user text-lg relative z-10"></i>
+                </button>
+            </div>
+            
+            <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-300 rounded-full z-50"></div>
+        </div>
+
+        <!-- ==============================
+             二级页面层 (覆盖在导航栏之上)
+        =============================== -->
+
+        <!-- 1. 帖子详情页 -->
+        <div id="page-post-detail" class="absolute inset-0 bg-[#F4F7F9] z-[60] flex flex-col transform translate-x-full transition-transform duration-300 ease-out">
+            <!-- Header -->
+            <div class="pt-14 pb-3 px-4 glass-panel border-b-0 rounded-b-2xl flex items-center justify-between shadow-sm sticky top-0 z-10">
+                <button onclick="closePage('page-post-detail')" class="w-8 h-8 flex items-center justify-center text-yoru-text hover:bg-gray-100 rounded-full transition">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <span class="font-bold text-[15px] text-yoru-text font-display">动态详情</span>
+                <button class="w-8 h-8 flex items-center justify-center text-yoru-text hover:bg-gray-100 rounded-full transition">
+                    <i class="fa-solid fa-ellipsis"></i>
+                </button>
+            </div>
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto no-scrollbar pb-24">
+                <div class="bg-white p-5 mb-2 shadow-sm border-b border-gray-100">
+                    <div class="flex items-center mb-4">
+                        <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Kira" class="w-10 h-10 rounded-full object-cover bg-gray-50 border border-gray-100">
+                        <div class="ml-3">
+                            <h3 class="text-sm font-bold text-yoru-text">Kira_星</h3>
+                            <p class="text-[11px] text-yoru-subtext">刚刚 · OOTD分享</p>
+                        </div>
+                        <button class="ml-auto bg-yoru-primary/10 text-yoru-primary text-[11px] font-bold py-1 px-4 rounded-full">关注</button>
+                    </div>
+                    <p class="text-[14px] text-yoru-text mb-4 leading-relaxed">今天去 CP 漫展的穿搭，尝试了地雷系风格。人太多了，好累但收到了喜欢的谷子！🎀 大家都去面基了吗？</p>
+                    <img src="https://picsum.photos/id/824/600/600" class="w-full rounded-2xl mb-4 object-cover" onerror="this.src='https://picsum.photos/seed/fallback/600/600'">
+                    <div class="flex items-center text-yoru-subtext text-xs space-x-6 pt-3 border-t border-gray-50">
+                        <span class="flex items-center"><i class="fa-solid fa-eye mr-1.5"></i> 3.2w</span>
+                        <span class="flex items-center"><i class="fa-solid fa-heart text-yoru-secondary mr-1.5"></i> 12k</span>
+                    </div>
+                </div>
+                <!-- 评论区 -->
+                <div class="bg-white p-5 min-h-[400px]">
+                    <h4 class="font-bold text-[13px] text-yoru-text mb-4">全部评论 (84)</h4>
+                    <div class="space-y-5">
+                        <div class="flex">
+                            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=NekoMimi" class="w-8 h-8 rounded-full bg-gray-50">
+                            <div class="ml-3 flex-1 border-b border-gray-50 pb-4">
+                                <div class="flex justify-between items-start"><span class="text-xs font-bold">Neko_Mimi</span><span class="text-xs text-gray-400"><i class="fa-regular fa-heart"></i> 12</span></div>
+                                <p class="text-[13px] text-gray-600 mt-1">这套搭配太好看了吧！求裙子的链接~</p>
+                                <span class="text-[10px] text-gray-400 mt-2 block">10分钟前</span>
+                            </div>
+                        </div>
+                        <div class="flex">
+                            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Otaku" class="w-8 h-8 rounded-full bg-gray-50">
+                            <div class="ml-3 flex-1 border-b border-gray-50 pb-4">
+                                <div class="flex justify-between items-start"><span class="text-xs font-bold">阿宅</span><span class="text-xs text-gray-400"><i class="fa-regular fa-heart"></i> 5</span></div>
+                                <p class="text-[13px] text-gray-600 mt-1">今天场馆真的巨热，辛苦啦！</p>
+                                <span class="text-[10px] text-gray-400 mt-2 block">半小时前</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Bottom Input -->
+            <div class="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 flex items-center pb-8 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] z-20">
+                <input type="text" placeholder="温柔的留下你的足迹..." class="flex-1 bg-[#F4F7F9] border border-gray-100 rounded-full px-4 py-2.5 text-[13px] outline-none">
+                <button onclick="showToast('发送成功')" class="ml-3 w-10 h-10 rounded-full bg-yoru-primary text-white flex items-center justify-center shadow-soft"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <!-- 2. 圈子详情页 -->
+        <div id="page-circle-detail" class="absolute inset-0 bg-[#F4F7F9] z-[60] flex flex-col transform translate-x-full transition-transform duration-300 ease-out">
+            <!-- 绝对定位的返回和分享按钮，悬浮在最上层，带有磨砂背景保证清晰度 -->
+            <div class="absolute top-0 left-0 right-0 pt-14 pb-3 px-4 flex items-center justify-between z-30">
+                <button onclick="closePage('page-circle-detail')" class="w-8 h-8 flex items-center justify-center bg-black/30 backdrop-blur-md rounded-full text-white"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="w-8 h-8 flex items-center justify-center bg-black/30 backdrop-blur-md rounded-full text-white"><i class="fa-solid fa-share-nodes"></i></button>
+            </div>
+
+            <!-- 整体滚动区域 -->
+            <div class="flex-1 overflow-y-auto no-scrollbar relative">
+                <!-- 顶部带图片的头部，随页面一起滚动 -->
+                <div class="relative pt-24 pb-10 px-5 text-white bg-cover bg-center" style="background-image: url('https://picsum.photos/id/160/600/400');">
+                    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
+                    <div class="relative z-10 flex items-end justify-between">
+                        <div class="w-16 h-16 rounded-2xl bg-white text-yoru-primary flex items-center justify-center text-3xl shadow-lg border-2 border-white">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <button onclick="joinCircle(this, true)" class="bg-yoru-primary text-white text-xs font-bold py-2 px-6 rounded-full shadow-glow-primary transition">加入结界</button>
+                    </div>
+                    <h2 class="relative z-10 text-2xl font-bold mt-3 font-display">主机游民</h2>
+                    <p class="relative z-10 text-sm text-white/90 mt-1">这里是热爱单机、主机游戏的硬核玩家聚集地。探讨剧情、分享白金攻略。</p>
+                    <div class="relative z-10 flex items-center text-xs text-white/70 mt-3 space-x-4">
+                        <span>12.4k 居民</span>
+                        <span>今日新增 342 条电波</span>
+                    </div>
+                </div>
+
+                <!-- 帖子列表区域，圆角盖住部分图片 -->
+                <div class="bg-[#F4F7F9] rounded-t-[32px] min-h-screen p-4 pt-6 relative -mt-6 z-20">
+                    <div class="flex space-x-6 mb-4 px-2 font-display font-bold text-sm">
+                        <span class="text-yoru-primary border-b-2 border-yoru-primary pb-1">最新动态</span>
+                        <span class="text-gray-400">精华内容</span>
+                    </div>
+                    <!-- 模拟一条圈内帖子 -->
+                    <div class="bg-white rounded-[24px] p-5 shadow-soft border border-white mb-4">
+                        <div class="flex items-center mb-3">
+                            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Pixel" class="w-8 h-8 rounded-full bg-gray-50 border border-gray-100">
+                            <div class="ml-3"><h3 class="text-xs font-bold text-yoru-text">Pixel_Hunter</h3></div>
+                        </div>
+                        <p class="text-[13px] text-yoru-text mb-2">《血源诅咒》到底什么时候出 PC 版啊！急死了！</p>
+                        <div class="flex text-yoru-subtext text-xs"><span class="mr-4"><i class="fa-regular fa-heart"></i> 124</span><span><i class="fa-regular fa-comment"></i> 45</span></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 右下角发帖悬浮球 -->
+            <button onclick="openPage('page-send-radio')" class="absolute bottom-8 right-5 w-14 h-14 rounded-full bg-yoru-primary text-white flex items-center justify-center shadow-glow-primary z-30 hover:scale-105 transition">
+                <i class="fa-solid fa-pen"></i>
+            </button>
+        </div>
+
+        <!-- 3. 发送电波页 -->
+        <div id="page-send-radio" class="absolute inset-0 bg-white z-[70] flex flex-col transform translate-y-full transition-transform duration-300 ease-out">
+            <div class="pt-14 pb-3 px-4 flex items-center justify-between border-b border-gray-50">
+                <button onclick="closePage('page-send-radio')" class="text-yoru-text font-bold text-[15px]">取消</button>
+                <span class="font-bold text-[15px] text-yoru-text font-display">发射电波</span>
+                <button onclick="showToast('发射成功！'); closePage('page-send-radio')" class="bg-yoru-primary/10 text-yoru-primary text-[13px] font-bold py-1.5 px-4 rounded-full">发射</button>
+            </div>
+            <div class="flex-1 p-5">
+                <textarea class="w-full h-40 outline-none resize-none text-[15px] text-yoru-text placeholder-gray-300 bg-transparent" placeholder="说出你的深夜感悟，寻找同频共振的灵魂..."></textarea>
+                
+                <div class="flex space-x-3 mt-4">
+                    <div class="w-20 h-20 bg-[#F4F7F9] rounded-xl flex items-center justify-center text-gray-400 border border-dashed border-gray-300 cursor-pointer hover:bg-gray-50">
+                        <i class="fa-solid fa-plus text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="pb-10 px-5 pt-3 border-t border-gray-50 flex space-x-6 text-gray-400 text-xl">
+                <button class="hover:text-yoru-primary"><i class="fa-regular fa-image"></i></button>
+                <button class="hover:text-yoru-primary"><i class="fa-solid fa-hashtag"></i></button>
+                <button class="hover:text-yoru-primary"><i class="fa-regular fa-face-smile"></i></button>
+                <div class="flex-1 text-right text-xs text-gray-300 flex items-center justify-end"><i class="fa-solid fa-location-dot mr-1"></i> 银河系</div>
+            </div>
+        </div>
+
+        <!-- ==============================
+             全局浮层提示组件
+        =============================== -->
+        <div id="toast" class="absolute top-24 left-1/2 transform -translate-x-1/2 bg-gray-800/95 text-white px-5 py-3 rounded-full text-xs font-bold shadow-2xl z-[100] opacity-0 pointer-events-none transition-all duration-300 flex items-center backdrop-blur-md">
+            <i class="fa-solid fa-circle-check text-yoru-accent mr-2 text-sm"></i>
+            <span id="toast-msg">提示信息</span>
+        </div>
+
+    </div>
+
+    <!-- 交互逻辑脚本 -->
+    <script>
+        function unlockApp() {
+            const authView = document.getElementById('view-auth');
+            const mainView = document.getElementById('view-main');
+            
+            const fingerprintIcon = document.querySelector('.fa-fingerprint');
+            if (fingerprintIcon) fingerprintIcon.classList.replace('fa-fingerprint', 'fa-check');
+            
+            const checkIcon = document.querySelector('.fa-check');
+            if (checkIcon) checkIcon.classList.add('text-yoru-accent');
+            
+            setTimeout(() => {
+                if (authView) {
+                    authView.style.opacity = '0';
+                    authView.style.pointerEvents = 'none';
+                }
+                if (mainView) {
+                    mainView.style.opacity = '1';
+                    mainView.style.pointerEvents = 'auto';
+                }
+            }, 500);
+        }
+
+        // 页面推入/推出管理
+        function openPage(pageId) {
+            const page = document.getElementById(pageId);
+            if(page) {
+                if(pageId === 'page-send-radio') {
+                    page.classList.remove('translate-y-full');
+                } else {
+                    page.classList.remove('translate-x-full');
+                }
+            }
+        }
+
+        function closePage(pageId) {
+            const page = document.getElementById(pageId);
+            if(page) {
+                if(pageId === 'page-send-radio') {
+                    page.classList.add('translate-y-full');
+                } else {
+                    page.classList.add('translate-x-full');
+                }
+            }
+        }
+
+        function switchTab(tabId, btnElement) {
+            const btns = document.querySelectorAll('.nav-btn');
+            btns.forEach(btn => {
+                btn.classList.replace('text-yoru-primary', 'text-gray-300');
+                const activeBg = btn.querySelector('.active-bg');
+                if(activeBg) activeBg.remove();
+            });
+
+            btnElement.classList.replace('text-gray-300', 'text-yoru-primary');
+            
+            const bgDiv = document.createElement('div');
+            bgDiv.className = `absolute inset-0 bg-yoru-primary/10 rounded-full active-bg scale-100 transition-transform`;
+            btnElement.prepend(bgDiv);
+
+            ['tab-feed', 'tab-dungeon', 'tab-radio', 'tab-profile'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('fade-enter-active');
+                }
+            });
+
+            const activeTab = document.getElementById('tab-' + tabId);
+            if (activeTab) {
+                activeTab.classList.remove('hidden');
+                void activeTab.offsetWidth;
+                activeTab.classList.add('fade-enter-active');
+            }
+        }
+
+        function toggleLike(btn) {
+            const icon = btn.querySelector('i');
+            const countSpan = btn.querySelector('.like-count');
+            
+            icon.classList.remove('liked-anim');
+            void icon.offsetWidth; 
+            
+            if (icon.classList.contains('fa-regular')) {
+                icon.classList.replace('fa-regular', 'fa-solid');
+                icon.classList.add('liked-anim');
+                icon.classList.add('text-yoru-secondary');
+                
+                let text = countSpan.innerText;
+                if(!text.includes('k')) countSpan.innerText = parseInt(text) + 1;
+            } else {
+                icon.classList.replace('fa-solid', 'fa-regular');
+                icon.classList.remove('text-yoru-secondary');
+                
+                let text = countSpan.innerText;
+                if(!text.includes('k')) countSpan.innerText = parseInt(text) - 1;
+            }
+        }
+
+        let toastTimeout;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('-translate-y-4'); 
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+                toast.classList.remove('-translate-y-4');
+            }, 2500);
+        }
+
+        function joinCircle(btn, isDetail) {
+            showToast('加入成功');
+            btn.innerText = '已加入';
+            if(isDetail) {
+                btn.className = 'bg-gray-200 text-gray-500 text-xs font-bold py-2 px-6 rounded-full transition';
+            } else {
+                btn.className = 'mt-3 bg-gray-50 text-gray-500 text-[11px] font-bold py-1.5 px-5 rounded-full w-full transition';
+            }
+            // 阻止继续点击
+            btn.onclick = (e) => { e.stopPropagation(); };
+        }
+
+        // 动态生成首页数据 (更换为防丢占位图 + 动漫风头像)
+        const feedData = [
+            { type: 'normal', author: 'Neko_Mimi', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=NekoMimi', level: 'Lv.4', time: '10分钟前', tag: '胶片日常', content: '周末去看了宫崎骏的原画展，买到了心仪的周边。天气真好，光影都很温柔 🍃', img: 'https://picsum.photos/id/250/600/400', likes: 245, comments: 32 },
+            { type: 'normal', author: 'Kira_星', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Kira', level: 'Lv.6', time: '1小时前', tag: 'OOTD分享', content: '今天去 CP 漫展的穿搭，尝试了地雷系风格。人太多了，好累但收到了喜欢的谷子！🎀', img: 'https://picsum.photos/id/1059/600/400', likes: '12k', comments: 84 },
+            { type: 'text', author: 'Anonymous_树', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Tree', time: '2小时前', tag: '树洞', content: '有时候觉得，二次元就像一个巨大的逃生舱。白天在公司面对无止境的表格和会议，只有晚上回家打开主机，看到熟悉的登录界面，才会觉得自己短暂地活了过来。', likes: '3.4k', comments: 420 },
+            { type: 'normal', author: 'Pixel_Hunter', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Pixel', level: 'Lv.5', time: '3小时前', tag: '主机游民', content: '《装甲核心6》这周目终于打通了！卢比孔的星火真的太浪漫了，附上我的机体配色方案，有人一起交流PVP吗？', img: 'https://picsum.photos/id/354/600/400', likes: 512, comments: 98 },
+            { type: 'normal', author: '千石抚子', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Nadeko', time: '3小时前', tag: '圣地巡礼', content: '终于来到了下北泽！感觉转角就能遇到波奇酱，晚上去LIVE HOUSE喝一杯🍺。', img: 'https://picsum.photos/id/453/600/400', likes: 1024, comments: 66 },
+            { type: 'normal', author: 'Cyber_Punk', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Cyber', level: 'Lv.3', time: '4小时前', tag: '街头摄影', content: '雨后的赛博朋克感，用理光GR3拍的。霓虹灯的倒影有一种迷幻的数字感。', img: 'https://picsum.photos/id/765/600/400', likes: 678, comments: 23 },
+            { type: 'text', author: '熬夜冠军', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Night', time: '5小时前', tag: '碎碎念', content: '凌晨3点的全家便利店，买了一份关东煮。耳机里放着《Secret Base》，突然觉得就算一个人生活在城市里，也能找到属于自己的平静。', likes: 890, comments: 112 },
+            { type: 'normal', author: '谷子收纳大师', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Bag', level: 'Lv.8', time: '5小时前', tag: '痛包展示', content: '新扎的痛包！花了两天时间排阵，带着它去见推啦！大家觉得这个配色怎么样？', img: 'https://picsum.photos/id/1060/600/400', likes: 456, comments: 45 },
+            { type: 'normal', author: '复古胶片', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Camera', time: '6小时前', tag: '器材党', content: '刚入手的二手富士，直出色彩确实有点毒。就是溢价太严重了，心疼钱包。', img: 'https://picsum.photos/id/435/600/400', likes: 455, comments: 67 },
+            { type: 'text', author: '老二次元', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Old', time: '7小时前', tag: '随想', content: '发现自己现在看番越来越没耐心了，是不是老了？以前能一口气补完几十集，现在看十分钟就想快进。只剩下玩黄游的耐心了（笑）。', likes: '1.2k', comments: 256 },
+            { type: 'normal', author: '岛主A', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Island', level: 'Lv.2', time: '8小时前', tag: '动森日记', content: '重新打开了吃灰两年的动森，发现小动物们还在等我，甚至还给我留了信。眼眶有点热。', img: 'https://picsum.photos/id/100/600/400', likes: '3.3k', comments: 210 },
+            { type: 'normal', author: '追逐星空', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Star', time: '9小时前', tag: '摄影', content: '去川西拍到了《你的名字》同款的璀璨星空。流星划过的那一刻，许了个关于新海诚的愿望。', img: 'https://picsum.photos/id/532/600/400', likes: '1.8k', comments: 95 },
+            { type: 'normal', author: '客制化萌新', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Keyboard', time: '10小时前', tag: '数码外设', content: '组了一把雨滴配色的机械键盘，轴体用了公主轴，打字的声音像雨滴落在屋檐上，太解压了。', img: 'https://picsum.photos/id/366/600/400', likes: 890, comments: 55 },
+            { type: 'text', author: '打工人小李', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Work', time: '11小时前', tag: '职场树洞', content: '下班后不想回出租屋，一个人在居酒屋喝了两杯生啤。看着街上的车水马龙，感觉成年人的世界真是一场漫长的修行啊。', likes: 760, comments: 88 },
+            { type: 'normal', author: '提瓦特向导', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Genshin', level: 'Lv.5', time: '12小时前', tag: '游戏日常', content: '这期深渊真是打吐了，还好最后用雷九万班勉强满星。大家都是用什么阵容逃课的？', img: 'https://picsum.photos/id/1015/600/400', likes: 650, comments: 142 },
+            { type: 'normal', author: '葬送的芙莉莲', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Elf', level: 'Lv.7', time: '14小时前', tag: '绘图分享', content: '“只是相处了短短十年的时间而已”。摸鱼一张辛美尔和芙莉莲，太意难平了。', img: 'https://picsum.photos/id/104/600/400', likes: '5.5k', comments: 402 },
+            { type: 'normal', author: '极简生活', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Simple', time: '15小时前', tag: 'OOTD分享', content: '今天的极简风穿搭。虽然平时喜欢二次元，但出门还是偏向于日系City Boy风格，比较清爽。', img: 'https://picsum.photos/id/119/600/400', likes: 320, comments: 18 },
+            { type: 'text', author: '初音未来', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Miku', time: '16小时前', tag: '音乐', content: '晚上睡不着，单曲循环《深海少女》。那些V家的老歌，承载了整个中二时期的回忆，永远听不腻。', likes: '2.5k', comments: 180 },
+            { type: 'normal', author: '绳匠01', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=ZZZ', time: '18小时前', tag: '绝区零', content: '各位绳匠觉得新版本的地图设计怎么样？我感觉光影又进化了！', img: 'https://picsum.photos/id/122/600/400', likes: '4.2k', comments: 310 },
+            { type: 'normal', author: '玛奇玛的狗', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Dog', level: 'Lv.9', time: '20小时前', tag: 'Cosplay', content: '周末去漫展出了电锯人，太累了但是很开心！认识了很多同好。', img: 'https://picsum.photos/id/1012/600/400', likes: '8.9k', comments: 890 },
+            { type: 'normal', author: '宝可梦训练家', avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Poke', time: '1天前', tag: '卡牌', content: '今天欧气爆棚！拆了一盒PTCG，居然抽到了异画莉莉艾！手都在抖，这也太美了吧。', img: 'https://picsum.photos/id/1068/600/400', likes: '5.6k', comments: 450 }
+        ];
+
+        function renderFeed() {
+            const container = document.getElementById('tab-feed');
+            let html = '';
+            
+            feedData.forEach(item => {
+                const levelTag = item.level ? `<span class="bg-yoru-primary/10 text-yoru-primary text-[10px] px-1.5 py-0.5 rounded-md ml-1 font-display font-bold">${item.level}</span>` : '';
+                
+                if (item.type === 'normal') {
+                    html += `
+                    <div onclick="openPage('page-post-detail')" class="feed-card bg-white rounded-[28px] p-5 shadow-soft border border-white mb-4 cursor-pointer transition hover:scale-[1.01]">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <img src="${item.avatar}" class="w-10 h-10 rounded-full border border-gray-100 bg-gray-50 object-cover">
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-bold text-yoru-text">${item.author} ${levelTag}</h3>
+                                    <p class="text-[11px] text-yoru-subtext">${item.time} · ${item.tag}</p>
+                                </div>
+                            </div>
+                            <button onclick="event.stopPropagation(); showToast('已收藏')" class="text-gray-300 hover:text-yoru-primary px-2"><i class="fa-solid fa-bookmark"></i></button>
+                        </div>
+                        <p class="text-[13px] text-yoru-text mb-3 leading-relaxed">${item.content}</p>
+                        <div class="rounded-2xl overflow-hidden mb-3">
+                            <img src="${item.img}" class="w-full h-48 object-cover" onerror="this.src='https://picsum.photos/seed/fallback/600/400'">
+                        </div>
+                        <div class="flex items-center justify-between text-yoru-subtext text-sm px-1">
+                            <button onclick="event.stopPropagation(); toggleLike(this)" class="hover:text-yoru-secondary transition flex items-center"><i class="fa-regular fa-heart mr-1.5"></i> <span class="like-count">${item.likes}</span></button>
+                            <button onclick="event.stopPropagation(); openPage('page-post-detail')" class="hover:text-yoru-primary transition flex items-center"><i class="fa-regular fa-comment mr-1.5"></i> ${item.comments}</button>
+                            <button onclick="event.stopPropagation(); showToast('已复制分享链接')" class="hover:text-yoru-accent transition"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>`;
+                } else if (item.type === 'text') {
+                    html += `
+                    <div onclick="openPage('page-post-detail')" class="feed-card bg-gradient-to-br from-white to-[#F8FAFC] rounded-[28px] p-6 shadow-soft border border-white relative mb-4 cursor-pointer transition hover:scale-[1.01]">
+                        <div class="absolute top-4 right-4 text-yoru-primary/10"><i class="fa-solid fa-quote-right text-4xl"></i></div>
+                        <div class="flex items-center justify-between mb-4 relative z-10">
+                            <div class="flex items-center">
+                                <img src="${item.avatar}" class="w-10 h-10 rounded-full border border-gray-100 bg-gray-50 object-cover">
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-bold text-yoru-text">${item.author}</h3>
+                                    <p class="text-[11px] text-yoru-subtext">${item.time} · ${item.tag}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-[14px] text-yoru-text mb-4 leading-loose tracking-wide font-medium relative z-10">${item.content}</p>
+                        <div class="flex items-center justify-between text-yoru-subtext text-sm px-1 border-t border-gray-100 pt-3 relative z-10">
+                            <button onclick="event.stopPropagation(); toggleLike(this)" class="hover:text-yoru-secondary transition flex items-center"><i class="fa-regular fa-heart mr-1.5"></i> <span class="like-count">${item.likes}</span></button>
+                            <button onclick="event.stopPropagation(); openPage('page-post-detail')" class="hover:text-yoru-primary transition flex items-center"><i class="fa-regular fa-comment mr-1.5"></i> ${item.comments}</button>
+                            <button onclick="event.stopPropagation(); showToast('已复制分享链接')" class="hover:text-yoru-accent transition"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>`;
+                }
+            });
+            
+            html += '<div class="h-10"></div>';
+            container.innerHTML = html;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderFeed();
+        });
+    </script>
+</body>
+</html>
