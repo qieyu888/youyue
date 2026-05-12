@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/post_model.dart';
 import '../theme/app_theme.dart';
 import '../widgets/avatar_widget.dart';
@@ -61,8 +62,8 @@ class _PostCardState extends State<PostCard>
     });
     if (widget.post.isLiked) {
       _likeController.forward(from: 0);
+      HapticFeedback.lightImpact();
     }
-    // fire-and-forget，不阻塞 UI
     widget.onLikeChanged?.call(widget.post.isLiked);
   }
 
@@ -253,8 +254,8 @@ class _PostCardState extends State<PostCard>
             setState(() {
               widget.post.isBookmarked = !widget.post.isBookmarked;
             });
+            HapticFeedback.selectionClick();
             showAppToast(context, widget.post.isBookmarked ? '已收藏' : '已取消收藏');
-            // fire-and-forget
             widget.onBookmarkChanged?.call(widget.post.isBookmarked);
           },
           child: Icon(

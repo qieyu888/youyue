@@ -116,8 +116,9 @@ class _DungeonTabState extends State<DungeonTab> {
                   ),
                   onJoin: () async {
                     await StorageService.toggleJoinCircle(circle.id);
+                    if (!mounted) return;
                     setState(() => circle.isJoined = StorageService.isCircleJoined(circle.id));
-                    showAppToast(context, circle.isJoined ? '加入成功' : '已退出结界');
+                    showAppToast(context, circle.isJoined ? '加入成功 🎉' : '已退出结界');
                   },
                 );
               },
@@ -213,20 +214,32 @@ class _CircleCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 7),
                 decoration: BoxDecoration(
                   color: circle.isJoined
-                      ? const Color(0xFFF5F5F5)
+                      ? const Color(0xFFF0F0F0)
                       : circle.iconColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  circle.isJoined ? '已加入' : '加入',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                  border: Border.all(
                     color: circle.isJoined
-                        ? AppColors.subtext
-                        : circle.iconColor,
+                        ? const Color(0xFFDDDDDD)
+                        : circle.iconColor.withValues(alpha: 0.3),
+                    width: 1,
                   ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (circle.isJoined)
+                      const Icon(Icons.check, size: 11, color: AppColors.subtext),
+                    if (circle.isJoined) const SizedBox(width: 3),
+                    Text(
+                      circle.isJoined ? '已加入' : '加入',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: circle.isJoined ? AppColors.subtext : circle.iconColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/post_model.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
@@ -16,6 +17,7 @@ class PostDetailScreen extends StatefulWidget {
 class _PostDetailScreenState extends State<PostDetailScreen> {
   final TextEditingController _commentController = TextEditingController();
   bool _isLiked = false;
+  bool _hasCommentText = false;
   late List<Map<String, String>> _comments;
   late String _viewCount;
 
@@ -56,6 +58,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     _comments = _generateComments(widget.post.id);
     _viewCount = _generateViewCount(widget.post.id);
     _isLiked = widget.post.isLiked;
+    _commentController.addListener(() {
+      final hasText = _commentController.text.trim().isNotEmpty;
+      if (hasText != _hasCommentText) setState(() => _hasCommentText = hasText);
+    });
   }
 
   @override
@@ -250,7 +256,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                           Text(_viewCount, style: const TextStyle(fontSize: 12, color: AppColors.subtext)),
                           const SizedBox(width: 16),
                           GestureDetector(
-                            onTap: () => setState(() => _isLiked = !_isLiked),
+                            onTap: () {
+                              setState(() => _isLiked = !_isLiked);
+                              HapticFeedback.lightImpact();
+                            },
                             child: Row(
                               children: [
                                 Icon(
@@ -322,13 +331,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 ),
                 const SizedBox(width: 10),
                 GestureDetector(
-                  onTap: _sendComment,
-                  child: Container(
+                  onTap: _hasCommentText ? _sendComment : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
                     width: 40, height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: _hasCommentText ? AppColors.primary : AppColors.subtext.withValues(alpha: 0.25),
                       shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10)],
+                      boxShadow: _hasCommentText
+                          ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10)]
+                          : [],
                     ),
                     child: const Icon(Icons.send, color: Colors.white, size: 18),
                   ),

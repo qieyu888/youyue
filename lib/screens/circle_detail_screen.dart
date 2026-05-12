@@ -217,8 +217,9 @@ class _CircleDetailScreenState extends State<CircleDetailScreen> {
                 GestureDetector(
                   onTap: () async {
                     await StorageService.toggleJoinCircle(widget.circle.id);
+                    if (!mounted) return;
                     setState(() => _isJoined = StorageService.isCircleJoined(widget.circle.id));
-                    showAppToast(context, _isJoined ? '加入成功' : '已退出结界');
+                    showAppToast(context, _isJoined ? '加入成功 🎉' : '已退出结界');
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),

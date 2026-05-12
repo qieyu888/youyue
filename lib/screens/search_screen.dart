@@ -17,6 +17,7 @@ class _SearchScreenState extends State<SearchScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   late TabController _tabController;
+  final ScrollController _scrollController = ScrollController();
   String _query = '';
 
   final List<String> _hotTags = [
@@ -29,7 +30,14 @@ class _SearchScreenState extends State<SearchScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _controller.addListener(() {
-      setState(() => _query = _controller.text.trim().toLowerCase());
+      final newQuery = _controller.text.trim().toLowerCase();
+      if (newQuery != _query) {
+        setState(() => _query = newQuery);
+        if (newQuery.isEmpty && _scrollController.hasClients) {
+          _scrollController.animateTo(0,
+              duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+        }
+      }
     });
   }
 
@@ -37,6 +45,7 @@ class _SearchScreenState extends State<SearchScreen>
   void dispose() {
     _controller.dispose();
     _tabController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -135,6 +144,7 @@ class _SearchScreenState extends State<SearchScreen>
 
   Widget _buildHotTags() {
     return ListView(
+      controller: _scrollController,
       padding: const EdgeInsets.all(16),
       children: [
         const Text(

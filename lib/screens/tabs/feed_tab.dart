@@ -14,12 +14,19 @@ class FeedTab extends StatefulWidget {
 class _FeedTabState extends State<FeedTab> {
   late List<PostModel> _posts;
   bool _isRefreshing = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _posts = List.from(kFeedData);
     _syncLikeBookmarkState();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _syncLikeBookmarkState() {
@@ -37,6 +44,11 @@ class _FeedTabState extends State<FeedTab> {
       _syncLikeBookmarkState();
       _isRefreshing = false;
     });
+    // 刷新后回到顶部
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(0,
+          duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+    }
   }
 
   @override
@@ -45,6 +57,7 @@ class _FeedTabState extends State<FeedTab> {
       color: const Color(0xFF7AB2D3),
       onRefresh: _onRefresh,
       child: ListView.builder(
+        controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
         itemCount: _posts.length + (_isRefreshing ? 0 : 1),
