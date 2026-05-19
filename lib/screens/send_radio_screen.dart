@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/toast_widget.dart';
+import 'recharge_screen.dart';
 
 class SendRadioScreen extends StatefulWidget {
   final Function(String)? onSent;
@@ -31,7 +33,7 @@ class _SendRadioScreenState extends State<SendRadioScreen> {
     super.dispose();
   }
 
-  void _send() {
+  void _send() async {
     final text = _controller.text.trim();
     if (text.isEmpty) {
       showAppToast(context, '请先写点什么吧~');
@@ -41,9 +43,54 @@ class _SendRadioScreenState extends State<SendRadioScreen> {
       showAppToast(context, '内容不能超过 $_maxChars 字');
       return;
     }
+    // 积分检查（仅发射电波消耗，回信不消耗）
+    if (widget.replyTo == null) {
+      if (!StorageService.canSendRadio()) {
+        _showInsufficientPointsDialog();
+        return;
+      }
+      await StorageService.consumeRadioPoints();
+    }
     widget.onSent?.call(text);
     showAppToast(context, widget.replyTo != null ? '回信已发出！' : '发射成功！');
     Navigator.pop(context);
+  }
+
+  void _showInsufficientPointsDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('积分不足', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: Text(
+          '发射一次电波需要 ${StorageService.kCostPerRadio} 积分，当前积分不足。\n\n是否前往充值？',
+          style: const TextStyle(fontSize: 13, color: AppColors.subtext, height: 1.6),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消', style: TextStyle(color: AppColors.subtext)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => const RechargeScreen(),
+                  transitionsBuilder: (_, anim, __, child) => SlideTransition(
+                    position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                        .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+                    child: child,
+                  ),
+                ),
+              );
+            },
+            child: const Text('去充值', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

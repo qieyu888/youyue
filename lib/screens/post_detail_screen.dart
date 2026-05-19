@@ -24,24 +24,30 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   // 根据帖子 id 生成稳定但看起来真实的评论
   static List<Map<String, String>> _generateComments(String postId) {
     final pool = [
-      {'author': 'Neko_Mimi',    'seed': 'NekoMimi', 'text': '这个太好看了，求同款！',             'time': '8分钟前',  'likes': '14'},
-      {'author': '阿宅',          'seed': 'Otaku',    'text': '同感，完全戳到我了。',               'time': '22分钟前', 'likes': '6'},
-      {'author': 'Pixel_Hunter', 'seed': 'Pixel',    'text': '哈哈哈哈笑死，太真实了。',           'time': '41分钟前', 'likes': '9'},
-      {'author': '千石抚子',      'seed': 'Nadeko',   'text': '收藏了，下次一定试试。',             'time': '1小时前',  'likes': '3'},
-      {'author': '复古胶片',      'seed': 'Camera',   'text': '这个角度拍得真好，用的什么设备？',   'time': '1小时前',  'likes': '21'},
-      {'author': '熬夜冠军',      'seed': 'Night',    'text': '深夜刷到这个，破防了。',             'time': '2小时前',  'likes': '17'},
-      {'author': '追逐星空',      'seed': 'Star',     'text': '太有共鸣了，转发给朋友了。',         'time': '2小时前',  'likes': '5'},
-      {'author': 'Cyber_Punk',   'seed': 'Cyber',    'text': '氛围感拉满，喜欢这种风格。',         'time': '3小时前',  'likes': '11'},
-      {'author': '老二次元',      'seed': 'Old',      'text': '这个梗我懂，哈哈哈。',               'time': '4小时前',  'likes': '8'},
-      {'author': '岛主A',         'seed': 'Island',   'text': '好治愈，谢谢分享。',                 'time': '5小时前',  'likes': '4'},
-      {'author': 'Kira_星',       'seed': 'Kira',     'text': '每次看你的帖子都很开心！',           'time': '6小时前',  'likes': '7'},
-      {'author': '谷子收纳大师',  'seed': 'Bag',      'text': '已关注，期待更多内容。',             'time': '7小时前',  'likes': '2'},
+      {'author': '猫耳控2046',  'seed': 'NekoMimi', 'text': '求同款！',                         'time': '6分钟前',   'likes': '14'},
+      {'author': '老宅一枚',    'seed': 'Otaku',    'text': '哈哈哈哈太真实了',                  'time': '19分钟前',  'likes': '6'},
+      {'author': '像素猎手',    'seed': 'Pixel',    'text': '同感，完全戳到我了',                'time': '37分钟前',  'likes': '9'},
+      {'author': '抚子酱',      'seed': 'Nadeko',   'text': '收藏了，下次试试',                  'time': '52分钟前',  'likes': '3'},
+      {'author': '富士胶片控',  'seed': 'Camera',   'text': '这个角度拍得真好，用的什么设备？',  'time': '1小时前',   'likes': '21'},
+      {'author': '凌晨三点',    'seed': 'Night',    'text': '深夜刷到这个，破防了',              'time': '1小时前',   'likes': '17'},
+      {'author': '追星星的人',  'seed': 'Star',     'text': '太有共鸣了',                        'time': '2小时前',   'likes': '5'},
+      {'author': 'GR3摄影党',   'seed': 'Cyber',    'text': '氛围感拉满',                        'time': '2小时前',   'likes': '11'},
+      {'author': '老宅一枚',    'seed': 'Old',      'text': '这个梗我懂哈哈',                    'time': '3小时前',   'likes': '8'},
+      {'author': '动森岛主',    'seed': 'Island',   'text': '好治愈，谢谢分享',                  'time': '4小时前',   'likes': '4'},
+      {'author': '星野kiraa',   'seed': 'Kira',     'text': '每次看你的帖子都很开心',            'time': '5小时前',   'likes': '7'},
+      {'author': '谷子收纳控',  'seed': 'Bag',      'text': '已关注',                            'time': '6小时前',   'likes': '2'},
+      {'author': '芙莉莲粉',    'seed': 'Elf',      'text': '意难平+1',                          'time': '7小时前',   'likes': '19'},
+      {'author': 'V家老粉',     'seed': 'Miku',     'text': '这个真的绝了',                      'time': '8小时前',   'likes': '13'},
+      {'author': '电锯人出没',  'seed': 'Dog',      'text': '下次漫展一起去！',                  'time': '9小时前',   'likes': '6'},
+      {'author': '匿名_茶',     'seed': 'Tree',     'text': '说出了我的心声',                    'time': '10小时前',  'likes': '31'},
+      {'author': '动森岛主',    'seed': 'Island',   'text': '哈哈哈哈哈哈',                      'time': '11小时前',  'likes': '8'},
+      {'author': '富士胶片控',  'seed': 'Camera',   'text': '这配色真的好看',                    'time': '12小时前',  'likes': '5'},
     ];
     final seed = postId.hashCode.abs();
-    final count = 3 + (seed % 5);
+    final count = 3 + (seed % 6);
     final result = <Map<String, String>>[];
     for (var i = 0; i < count; i++) {
-      result.add(pool[(seed + i * 3) % pool.length]);
+      result.add(pool[(seed + i * 7) % pool.length]);
     }
     return result;
   }

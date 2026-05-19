@@ -157,13 +157,15 @@ class _RadioTabState extends State<RadioTab>
                   blurRadius: 20, spreadRadius: 2,
                 )],
               ),
-              child: const Column(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.cell_tower, color: AppColors.primary, size: 24),
-                  SizedBox(height: 4),
-                  Text('发射', style: TextStyle(
+                  const Icon(Icons.cell_tower, color: AppColors.primary, size: 22),
+                  const SizedBox(height: 2),
+                  const Text('发射', style: TextStyle(
                       fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  Text('-${StorageService.kCostPerRadio}分',
+                      style: const TextStyle(fontSize: 8, color: AppColors.subtext)),
                 ],
               ),
             ),

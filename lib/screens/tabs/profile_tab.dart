@@ -9,6 +9,7 @@ import '../blacklist_screen.dart';
 import '../edit_profile_screen.dart';
 import '../login_screen.dart';
 import '../my_bookmarks_screen.dart';
+import '../recharge_screen.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -37,6 +38,25 @@ class _ProfileTabState extends State<ProfileTab> {
         _buildProfileCard(),
         const SizedBox(height: 16),
         _menuSection([
+          _MenuItem(
+            icon: Icons.bolt,
+            iconColor: const Color(0xFFF59E0B),
+            iconBg: const Color(0xFFFFFBEB),
+            label: '我的积分',
+            trailing: Text('${StorageService.getPoints()} 分',
+                style: const TextStyle(fontSize: 11, color: AppColors.subtext)),
+            onTap: () => Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const RechargeScreen(),
+                transitionsBuilder: (_, anim, __, child) => SlideTransition(
+                  position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
+                      .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+                  child: child,
+                ),
+              ),
+            ).then((_) => setState(() {})),
+          ),
           _MenuItem(
             icon: Icons.bookmark_border,
             iconColor: AppColors.primary,
@@ -242,7 +262,7 @@ class _ProfileTabState extends State<ProfileTab> {
             ],
           ),
           const SizedBox(height: 4),
-          Text('ID: 89757 · $_bio',
+          Text('$_bio',
               style: const TextStyle(fontSize: 11, color: AppColors.subtext)),
           const SizedBox(height: 20),
           const Divider(color: AppColors.divider),
@@ -357,8 +377,73 @@ class _ProfileTabState extends State<ProfileTab> {
         ),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showContactDialog();
+            },
+            child: const Text('联系我们', style: TextStyle(color: AppColors.subtext)),
+          ),
+          TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('关闭', style: TextStyle(color: AppColors.primary)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showContactDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('联系我们', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('有任何问题或建议，欢迎告诉我们。',
+                style: TextStyle(fontSize: 12, color: AppColors.subtext)),
+            const SizedBox(height: 14),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.bg,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.divider),
+              ),
+              child: TextField(
+                controller: controller,
+                maxLines: 4,
+                maxLength: 300,
+                style: const TextStyle(fontSize: 13, color: AppColors.textColor),
+                decoration: const InputDecoration(
+                  hintText: '请描述您的问题或建议...',
+                  hintStyle: TextStyle(color: AppColors.subtext, fontSize: 13),
+                  contentPadding: EdgeInsets.all(12),
+                  border: InputBorder.none,
+                  counterStyle: TextStyle(fontSize: 10, color: AppColors.subtext),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消', style: TextStyle(color: AppColors.subtext)),
+          ),
+          TextButton(
+            onPressed: () {
+              final text = controller.text.trim();
+              Navigator.pop(ctx);
+              if (text.isEmpty) {
+                showAppToast(context, '请输入反馈内容');
+                return;
+              }
+              showAppToast(context, '反馈已提交，感谢您的意见！');
+            },
+            child: const Text('发送', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

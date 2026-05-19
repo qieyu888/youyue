@@ -135,6 +135,16 @@ class StorageService {
   static bool isLoggedIn() => _prefs.getBool('is_logged_in') ?? false;
   static Future<void> setLoggedIn(bool v) => _prefs.setBool('is_logged_in', v);
 
+  // 积分
+  static const int kDefaultPoints = 60;
+  static const int kCostPerRadio = 20;
+
+  static int getPoints() => _prefs.getInt('points') ?? kDefaultPoints;
+  static Future<void> setPoints(int v) => _prefs.setInt('points', v);
+  static Future<void> addPoints(int v) => setPoints(getPoints() + v);
+  static bool canSendRadio() => getPoints() >= kCostPerRadio;
+  static Future<void> consumeRadioPoints() => setPoints(getPoints() - kCostPerRadio);
+
   // 注销账号（清除所有用户数据，保留协议同意记录）
   static Future<void> clearUserData() async {
     await _prefs.remove('nickname');

@@ -4,11 +4,13 @@ import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/storage_service.dart';
+import 'services/iap_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await StorageService.init();
+  await IAPService().init();
   runApp(const YouYueApp());
 }
 
